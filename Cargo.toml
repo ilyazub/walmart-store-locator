@@ -1,0 +1,12 @@
+[package]
+name = "walmart-store-locator"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = "0.11.4"
+futures = "0.3.15"
+tokio = { version = "1.7.1", features = ["rt-multi-thread", "macros"] }
+tower = { version = "0.4.8", features = ["limit", "buffer", "util"] }
