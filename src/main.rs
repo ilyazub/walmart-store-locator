@@ -40,9 +40,9 @@ async fn main() {
         .unwrap();
 
     let mut service = tower::ServiceBuilder::new()
-        .concurrency_limit(15)
-        .buffer(100)
-        .rate_limit(20, Duration::new(10, 0))
+        .concurrency_limit(50)
+        .buffer(200)
+        .rate_limit(25, Duration::new(5, 0))
         .service_fn(move |req| client.execute(req));
 
     let mut walmart_addresses_queue = Vec::<Store>::new();
@@ -104,29 +104,20 @@ async fn main() {
                 let sel_store_zip_code = css(".store-address-postal[itemprop=postalCode]");
                 let sel_store_address = css(".store-address[itemprop=address]");
 
-                let store_zip_code: String = store_html
-                    .select(&sel_store_zip_code)
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect();
+                if let (Some(store_zip_code_ref), Some(store_address_ref)) = (
+                    store_html.select(&sel_store_zip_code).next(),
+                    store_html.select(&sel_store_address).next(),
+                ) {
+                    let store = Store {
+                        store_id: store_id,
+                        postal_code: store_zip_code_ref.text().collect(),
+                        address: store_address_ref.text().collect(),
+                    };
 
-                let store_address: String = store_html
-                    .select(&sel_store_address)
-                    .next()
-                    .unwrap()
-                    .text()
-                    .collect();
+                    println!("Found store: {store:?}", store = store);
 
-                let store = Store {
-                    store_id: store_id,
-                    postal_code: store_zip_code,
-                    address: store_address,
-                };
-
-                println!("Found store: {store:?}", store = store);
-
-                walmart_addresses_queue.push(store);
+                    walmart_addresses_queue.push(store);
+                }
             } else {
                 let city_request = reqwest::Request::new(
                     reqwest::Method::GET,
